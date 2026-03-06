@@ -96,7 +96,7 @@ struct ApplicationSwitcher: View {
                 .task {
                     await viewState.backgroundWsTask()
                     if viewState.state != .signedOut {
-                        withAnimation {
+                        withAnimation(reduceMotion ? nil : .default) {
                             viewState.state = .connecting
                         }
                     }
@@ -145,7 +145,7 @@ struct ApplicationSwitcher: View {
                 .onChange(of: colorScheme) { before, after in
                     // automatically switch the color scheme if the user pressed "auto" in the preferences menu
                     if viewState.theme.shouldFollowiOSTheme {
-                        withAnimation {
+                        withAnimation(reduceMotion ? nil : .default) {
                             _ = viewState.applySystemScheme(theme: after, followSystem: true)
                         }
                     }
@@ -154,7 +154,7 @@ struct ApplicationSwitcher: View {
                     if case .connected = after {
                         banner = .connected
                         DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(2)) {
-                            withAnimation {
+                            withAnimation(reduceMotion ? nil : .default) {
                                 banner = nil
                             }
                         }
@@ -169,7 +169,7 @@ struct ApplicationSwitcher: View {
                     if viewState.state == .signedOut && viewState.sessionToken != nil { // signging out
                         viewState.sessionToken = nil
                         viewState.destroyCache()
-                        withAnimation {
+                        withAnimation(reduceMotion ? nil : .default) {
                             wasSignedOut = true
                         }
                     }

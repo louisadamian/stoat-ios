@@ -17,7 +17,16 @@ let log = Logger(subsystem: "app.revolt.chat", category: "UserSettingsViews")
 func generateTOTPUrl(secret: String, email: String) -> String {
     return "otpauth://totp/Stoat:\(email)?secret=\(secret)&issuer=Stoat"
 }
-
+func withOptionalAnimation<Result>(
+    _ animation: Animation? = .default,
+    _ body: () throws -> Result
+) rethrows -> Result {
+    if UIAccessibility.isReduceMotionEnabled {
+        return try body()
+    } else {
+        return try withOptionalAnimation(animation, body)
+    }
+}
 
 /// Takes a callback that receives either the totp code or the recovery code (in that argument order).
 /// Wont be called if neither are found.
@@ -54,19 +63,19 @@ fileprivate struct CreateMFATicketView: View {
     var doneCallback: (MFATicketResponse) -> ()
     
     func setBadField() {
-        withAnimation {
+        withOptionalAnimation {
             fieldIsIncorrect = true
         }
         
         fieldShake = true
-        withAnimation(Animation.spring(response: 0.2, dampingFraction: 0.2, blendDuration: 0.2)) {
+        withOptionalAnimation(Animation.spring(response: 0.2, dampingFraction: 0.2, blendDuration: 0.2)) {
             fieldShake = false
         }
     }
     
     func submitForTicket() async {
         if fieldIsIncorrect {
-            withAnimation {
+            withOptionalAnimation {
                 fieldIsIncorrect = false
             }
         }
@@ -130,7 +139,7 @@ fileprivate struct CreateMFATicketView: View {
                     .offset(x: fieldShake ? 30 : 0)
                     .onChange(of: fieldValue) { _, _ in
                         if fieldIsIncorrect {
-                            withAnimation {
+                            withOptionalAnimation {
                                 fieldIsIncorrect = false
                             }
                         }
@@ -148,7 +157,7 @@ fileprivate struct CreateMFATicketView: View {
                 #endif
                     .onChange(of: fieldValue) { _, _ in
                         if fieldIsIncorrect {
-                            withAnimation {
+                            withOptionalAnimation {
                                 fieldIsIncorrect = false
                             }
                         }
@@ -195,12 +204,12 @@ fileprivate struct AddTOTPSheet: View {
     @State var secret: String? = nil
     
     func setBadField() {
-        withAnimation {
+        withOptionalAnimation {
             fieldIsIncorrect = true
         }
         
         fieldShake = true
-        withAnimation(Animation.spring(response: 0.2, dampingFraction: 0.2, blendDuration: 0.2)) {
+        withOptionalAnimation(Animation.spring(response: 0.2, dampingFraction: 0.2, blendDuration: 0.2)) {
             fieldShake = false
         }
     }
@@ -213,12 +222,12 @@ fileprivate struct AddTOTPSheet: View {
             let secretModel = try secretResp.get()
             secret = secretModel.secret
             
-            withAnimation {
+            withOptionalAnimation {
                 currentPhase = .Code
             }
         } catch {
             log.error("Errored out attempting to receive TOTP secret: \(error.localizedDescription)")
-            withAnimation {
+            withOptionalAnimation {
                 currentPhase = .FatalError
             }
         }
@@ -226,7 +235,7 @@ fileprivate struct AddTOTPSheet: View {
     
     func finalize() async {
         if fieldIsIncorrect {
-            withAnimation {
+            withOptionalAnimation {
                 fieldIsIncorrect = false
             }
         }
@@ -282,7 +291,7 @@ fileprivate struct AddTOTPSheet: View {
                 Spacer()
                     .frame(maxHeight: 10)
                 Button(action: {
-                    withAnimation {
+                    withOptionalAnimation {
                         currentPhase = .Verify
                     }
                 }) {
@@ -331,7 +340,7 @@ fileprivate struct RemoveTOTPSheet: View {
                 let error = error as! RevoltError
                 SentrySDK.capture(error: error)
                 
-                withAnimation {
+                withOptionalAnimation {
                     errorOccurred = true
                 }
             }
@@ -368,14 +377,14 @@ fileprivate struct GenerateRecoveryCodesSheet: View {
                 let _codes = try await viewState.http.generateRecoveryCodes(mfaToken: ticket.token).get()
                 
                 sheetIsNotDismissable = true
-                withAnimation {
+                withOptionalAnimation {
                     codes = _codes
                 }
             } catch {
                 let error = error as! RevoltError
                 SentrySDK.capture(error: error)
                 
-                withAnimation {
+                withOptionalAnimation {
                     errorOccurred = true
                 }
             }
@@ -403,13 +412,13 @@ fileprivate struct GenerateRecoveryCodesSheet: View {
                         let content = codes.joined(separator: "\n")
                         UIPasteboard.general.setValue(content, forPasteboardType: UTType.plainText.identifier)
                         
-                        withAnimation {
+                        withOptionalAnimation {
                             copyButtonText = String(localized: "Copied!")
                             isCopyDisabled = true
                         }
                         
                         DispatchQueue.main.asyncAfter(deadline: .now() + 4, execute: {
-                            withAnimation {
+                            withOptionalAnimation {
                                 copyButtonText = String(localized: "Copy to clipboard")
                                 isCopyDisabled = false
                             }
@@ -476,7 +485,7 @@ fileprivate struct UsernameUpdateSheet: View {
             showSheet = false
         } catch {
             // TODO: better error messages
-            withAnimation {
+            withOptionalAnimation {
                 errorOccurred = true
             }
         }
@@ -573,7 +582,7 @@ fileprivate struct PasswordUpdateSheet: View {
             showSheet = false
         } catch {
             // TODO: better error messages
-            withAnimation {
+            withOptionalAnimation {
                 errorOccurred = true
             }
         }
@@ -656,7 +665,7 @@ fileprivate struct DisableAccountSheet: View {
     @State var presentConfirmationDialog = false
     
     func receiveTicket(ticket: MFATicketResponse) {
-        withAnimation {
+        withOptionalAnimation {
             self.ticket = ticket
         }
     }
@@ -668,7 +677,7 @@ fileprivate struct DisableAccountSheet: View {
             } catch {
                 SentrySDK.capture(error: error)
                 
-                withAnimation {
+                withOptionalAnimation {
                     errorOccurred = true
                 }
                 return
@@ -677,7 +686,7 @@ fileprivate struct DisableAccountSheet: View {
             viewState.ws?.stop()
             showSheet = false
 
-            withAnimation {
+            withOptionalAnimation {
                 viewState.state = .signedOut
             }
         }
@@ -754,7 +763,7 @@ fileprivate struct DeleteAccountSheet: View {
     @State var presentConfirmationDialog = false
     
     func receiveTicket(ticket: MFATicketResponse) {
-        withAnimation {
+        withOptionalAnimation {
             self.ticket = ticket
         }
     }
@@ -766,7 +775,7 @@ fileprivate struct DeleteAccountSheet: View {
             } catch {
                 SentrySDK.capture(error: error)
                 
-                withAnimation {
+                withOptionalAnimation {
                     errorOccurred = true
                 }
                 return
@@ -775,7 +784,7 @@ fileprivate struct DeleteAccountSheet: View {
             viewState.ws?.stop()
             showSheet = false
 
-            withAnimation {
+            withOptionalAnimation {
                 viewState.state = .signedOut
             }
         }
@@ -1050,3 +1059,7 @@ struct UserSettings: View {
     }
 }
 
+#Preview {
+    @Previewable @StateObject var state = ViewState.preview().applySystemScheme(theme: .dark)
+    UserSettings().environmentObject(state)
+}
