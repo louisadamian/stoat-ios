@@ -155,7 +155,7 @@ struct Home: View {
             if offset != .zero {
                 offset = .zero
             } else {
-                offset = minSidebarWidth
+                offset = UIScreen.main.bounds.width*sidebarWidthPercentage
             }
         }
     }
