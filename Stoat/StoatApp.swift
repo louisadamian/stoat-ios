@@ -87,11 +87,12 @@ struct ApplicationSwitcher: View {
     @EnvironmentObject var viewState: ViewState
     @State var wasSignedOut = false
     @State var banner: WsState? = nil
-    
+    @Environment(\.accessibilityReduceMotion) var reduceMotion
+
     var body: some View {
         if viewState.state != .signedOut && !viewState.isOnboarding {
             InnerApp()
-                .transition(.slide)
+                .transition(reduceMotion ? .identity : .slide)
                 .task {
                     await viewState.backgroundWsTask()
                     if viewState.state != .signedOut {
@@ -163,7 +164,7 @@ struct ApplicationSwitcher: View {
                 })
         } else {
             Welcome(wasSignedOut: $wasSignedOut)
-                .transition(.slideNext)
+                .transition(reduceMotion ? .identity : .slideNext)
                 .onAppear {
                     if viewState.state == .signedOut && viewState.sessionToken != nil { // signging out
                         viewState.sessionToken = nil
@@ -307,4 +308,10 @@ func copyUrl(url: URL) {
 #else
     UIPasteboard.general.url = url
 #endif
+}
+
+#Preview{
+    @Previewable @StateObject var state = ViewState.preview().applySystemScheme(theme: .dark)
+    return MainApp().environmentObject(state)
+    
 }

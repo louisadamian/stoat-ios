@@ -11,7 +11,8 @@ import Types
 struct ResendEmail: View {
     @EnvironmentObject var viewState: ViewState
     @Environment(\.colorScheme) var colorScheme
-    
+    @Environment(\.accessibilityReduceMotion) var reduceMotion
+
     @State var errorMessage: String? = nil
     @State var email = ""
     
@@ -27,7 +28,7 @@ struct ResendEmail: View {
         }
         
         if email.isEmpty {
-            withAnimation {
+            withAnimation(reduceMotion ? nil : .default) {
                 errorMessage = "Enter your email"
             }
             return

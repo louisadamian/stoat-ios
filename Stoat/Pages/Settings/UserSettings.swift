@@ -181,6 +181,7 @@ fileprivate struct CreateMFATicketView: View {
 
 fileprivate struct AddTOTPSheet: View {
     private enum Phase { case Password, Code, Verify, FatalError}
+    @Environment(\.accessibilityReduceMotion) var reduceMotion
     @EnvironmentObject var viewState: ViewState
     @State private var currentPhase: Phase = .Password
     @Binding var showSheet: Bool
@@ -311,7 +312,7 @@ fileprivate struct AddTOTPSheet: View {
             }
         }
         .padding()
-        .transition(.slide)
+        .transition(reduceMotion ? .identity : .slide)
     }
 }
 
@@ -352,6 +353,7 @@ fileprivate struct RemoveTOTPSheet: View {
 }
 
 fileprivate struct GenerateRecoveryCodesSheet: View {
+    @Environment(\.accessibilityReduceMotion) var reduceMotion
     @EnvironmentObject var viewState: ViewState
     @Binding var showSheet: Bool
     @Binding var sheetIsNotDismissable: Bool
@@ -385,7 +387,7 @@ fileprivate struct GenerateRecoveryCodesSheet: View {
         VStack {
             if codes.isEmpty {
                 CreateMFATicketView(requestTicketType: .Password, doneCallback: generateCodes)
-                    .transition(.slideNext)
+                    .transition(reduceMotion ? .identity : .slideNext)
             } else {
                 VStack {
                     ForEach(0 ..< codes.count, id: \.self) { value in
@@ -435,7 +437,7 @@ fileprivate struct GenerateRecoveryCodesSheet: View {
                 }
                 .backgroundStyle(viewState.theme.background2)
                 .padding()
-                .transition(.slideNext)
+                .transition(reduceMotion ? .identity : .slideNext)
             }
             if errorOccurred {
                 Spacer()
@@ -646,6 +648,7 @@ fileprivate struct PasswordUpdateSheet: View {
 }
 
 fileprivate struct DisableAccountSheet: View {
+    @Environment(\.accessibilityReduceMotion) var reduceMotion
     @EnvironmentObject var viewState: ViewState
     @Binding var showSheet: Bool
     @State var ticket: MFATicketResponse? = nil
@@ -683,7 +686,7 @@ fileprivate struct DisableAccountSheet: View {
     var body: some View {
         if ticket == nil {
             CreateMFATicketView(requestTicketType: .Password, doneCallback: receiveTicket)
-                .transition(.slideNext)
+                .transition(reduceMotion ? .identity : .slideNext)
         } else {
             VStack {
                 Text("Wait a minute!")
@@ -729,8 +732,8 @@ fileprivate struct DisableAccountSheet: View {
                     deactivateAccount()
                 }
             }
-            .transition(.slideNext)
-            
+            .transition(reduceMotion ? .identity : .slideNext)
+
             if errorOccurred {
                 Spacer()
                     .frame(maxHeight: 10)
@@ -743,6 +746,7 @@ fileprivate struct DisableAccountSheet: View {
 
 
 fileprivate struct DeleteAccountSheet: View {
+    @Environment(\.accessibilityReduceMotion) var reduceMotion
     @EnvironmentObject var viewState: ViewState
     @Binding var showSheet: Bool
     @State var ticket: MFATicketResponse? = nil
@@ -780,7 +784,7 @@ fileprivate struct DeleteAccountSheet: View {
     var body: some View {
         if ticket == nil {
             CreateMFATicketView(requestTicketType: .Password, doneCallback: receiveTicket)
-                .transition(.slideNext)
+                .transition(reduceMotion ? .identity : .slideNext)
         } else {
             VStack {
                 Text("Stop right there!")
@@ -826,8 +830,8 @@ fileprivate struct DeleteAccountSheet: View {
                     deleteAccount()
                 }
             }
-            .transition(.slideNext)
-            
+            .transition(reduceMotion ? .identity : .slideNext)
+
             if errorOccurred {
                 Spacer()
                     .frame(maxHeight: 10)
