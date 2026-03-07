@@ -27,26 +27,38 @@ public struct RevoltFeature: Codable {
     public var url: String
 }
 
-public struct VortexFeature: Codable {
-    public init(enabled: Bool, url: String, ws: String) {
+public struct LiveKitNode: Codable {
+    public init(name: String, lat: Float, lon: Float, public_url: String) {
+        self.name = name
+        self.lat = lat
+        self.lon = lon
+        self.public_url = public_url
+    }
+    
+    public var name: String
+    public var lat: Float
+    public var lon: Float
+    public var public_url: String
+}
+
+public struct LiveKitFeature: Codable {
+    public init(enabled: Bool, nodes: [LiveKitNode]) {
         self.enabled = enabled
-        self.url = url
-        self.ws = ws
+        self.nodes = nodes
     }
     
     public var enabled: Bool
-    public var url: String
-    public var ws: String
+    public var nodes: [LiveKitNode]
 }
 
 public struct ApiFeatures: Codable {
-    public init(captcha: CaptchaFeature, email: Bool, invite_only: Bool, autumn: RevoltFeature, january: RevoltFeature, voso: VortexFeature) {
+    public init(captcha: CaptchaFeature, email: Bool, invite_only: Bool, autumn: RevoltFeature, january: RevoltFeature, livekit: LiveKitFeature) {
         self.captcha = captcha
         self.email = email
         self.invite_only = invite_only
         self.autumn = autumn
         self.january = january
-        self.voso = voso
+        self.livekit = livekit
     }
     
     public var captcha: CaptchaFeature
@@ -54,7 +66,7 @@ public struct ApiFeatures: Codable {
     public var invite_only: Bool
     public var autumn: RevoltFeature
     public var january: RevoltFeature
-    public var voso: VortexFeature
+    public var livekit: LiveKitFeature
 }
 
 public struct ApiInfo: Codable {

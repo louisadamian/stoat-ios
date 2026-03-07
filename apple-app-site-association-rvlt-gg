@@ -2,7 +2,7 @@
     "applinks": {
         "details": [
             {
-                "appIDs": ["T23HBWQ54Y.chat.revolt.app"],
+                "appIDs": ["SV9Y7P7XP4.chat.stoat.app"],
                 "components": [
                     {
                         "/": "/app",

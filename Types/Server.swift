@@ -7,8 +7,8 @@
 
 import Foundation
 
-public struct Server: Codable, Identifiable {
-    public init(id: String, owner: String, name: String, channels: [String], default_permissions: Permissions, description: String? = nil, categories: [Category]? = nil, system_messages: SystemMessages? = nil, roles: [String : Role]? = nil, icon: File? = nil, banner: File? = nil, nsfw: Bool? = nil, flags: ServerFlags? = nil) {
+public struct Server: Codable, Identifiable, Equatable, Hashable {
+    public init(id: String, owner: String, name: String, channels: [String], default_permissions: Permissions, description: String? = nil, categories: [Category]? = nil, system_messages: SystemMessages? = nil, roles: [String : Role]? = nil, icon: File? = nil, banner: File? = nil, nsfw: Bool? = nil, flags: ServerFlags? = nil, analytics: Bool? = nil, discoverable: Bool? = nil) {
         self.id = id
         self.owner = owner
         self.name = name
@@ -22,6 +22,8 @@ public struct Server: Codable, Identifiable {
         self.banner = banner
         self.nsfw = nsfw
         self.flags = flags
+        self.analytics = analytics
+        self.discoverable = discoverable
     }
     
     public var id: String
@@ -37,14 +39,16 @@ public struct Server: Codable, Identifiable {
     public var banner: File?
     public var nsfw: Bool?
     public var flags: ServerFlags?
+    public var analytics: Bool?
+    public var discoverable: Bool?
     
     enum CodingKeys: String, CodingKey {
         case id = "_id"
-        case owner, name, channels, default_permissions, description, categories, system_messages, roles, icon, banner, nsfw, flags
+        case owner, name, channels, default_permissions, description, categories, system_messages, roles, icon, banner, nsfw, flags, analytics, discoverable
     }
 }
 
-public struct ServerFlags: OptionSet {
+public struct ServerFlags: OptionSet, Hashable, Equatable {
     public init(rawValue: Int) {
         self.rawValue = rawValue
     }
@@ -68,7 +72,7 @@ extension ServerFlags: Codable {
     }
 }
 
-public struct SystemMessages: Codable, Equatable {
+public struct SystemMessages: Codable, Equatable, Hashable {
     public init(user_joined: String? = nil, user_left: String? = nil, user_kicked: String? = nil, user_banned: String? = nil) {
         self.user_joined = user_joined
         self.user_left = user_left
@@ -82,7 +86,7 @@ public struct SystemMessages: Codable, Equatable {
     public var user_banned: String?
 }
 
-public struct Category: Codable, Identifiable {
+public struct Category: Codable, Identifiable, Equatable, Hashable {
     public init(id: String, title: String, channels: [String]) {
         self.id = id
         self.title = title
