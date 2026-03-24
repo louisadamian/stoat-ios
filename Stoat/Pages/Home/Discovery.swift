@@ -101,7 +101,7 @@ fileprivate struct WebView: UIViewRepresentable {
             document.addEventListener("click", (evt) => {
                 let el = findAElement(evt.target)
 
-                if (el && el.href.startsWith("https://app.revolt.chat/server")) {
+                if (el && el.href.startsWith("https://stoat.chat/app/server")) {
                     let inviteCode = el.href.split("/").reverse()[0]
                     window.webkit.messageHandlers.serverInviteClicked.postMessage(inviteCode)
                 }

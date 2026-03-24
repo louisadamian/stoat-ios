@@ -12,7 +12,7 @@ struct ServerUrlSelector: View {
     @EnvironmentObject var viewState: ViewState
     @Environment(\.colorScheme) var colorScheme
     
-    private let officialServer = "https://api.revolt.chat"
+    private let officialServer = "https://api.stoat.chat"
     @State private var showCustomServer = false
     @State private var customDomain: String = ""
     @State private var isValidating = false
@@ -192,7 +192,7 @@ struct ServerUrlSelector: View {
                         .foregroundStyle(.green)
                 }
             } else {
-                Text("Official Revolt Server")
+                Text("Official Stoat Server")
                     .padding()
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .background((colorScheme == .light) ? Color(white: 0.851) : Color(white: 0.2))

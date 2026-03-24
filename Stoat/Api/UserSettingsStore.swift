@@ -212,6 +212,7 @@ class PersistentUserSettingsStore: Codable {
         case _lastOpenChannels = "lastOpenChannels"
         case _closedCategories = "closedCategories"
         case _experiments = "experiments"
+        case _serverUrl = "serverUrl"
     }
 }
 
