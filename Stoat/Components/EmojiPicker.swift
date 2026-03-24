@@ -150,37 +150,37 @@ struct EmojiPicker: View {
     var onClick: (PickerEmoji) -> ()
 
     @State var scrollPosition: String?
-
+    @State var proxy: ScrollViewProxy? = nil
     var body: some View {
         let emojis = loadEmojis(withState: viewState)
 
         ZStack(alignment: .top) {
             ScrollView(.horizontal) {
                 HStack(spacing: 8) {
-                    ForEach(Array(emojis), id: \.0) { (group) in
+                    ForEach(Array(emojis), id: \.0) { group in
                         Button {
                             scrollPosition = group.0.id
                         } label: {
                             switch group.0 {
-                                case .server(let server):
-                                    ServerIcon(server: server, height: 32, width: 32, clipTo: Circle())
-                                        .font(.caption)
-                                case .unicode(_):
-                                    let emojiString = String(String.UnicodeScalarView(group.1.first!.base.compactMap(Unicode.Scalar.init)))
+                            case .server(let server):
+                                ServerIcon(server: server, height: 32, width: 32, clipTo: Circle())
+                                    .font(.caption)
+                            case .unicode(_):
+                                let emojiString = String(String.UnicodeScalarView(group.1.first!.base.compactMap(Unicode.Scalar.init)))
+                                
+                                #if os(iOS)
+                                Image(uiImage: convertEmojiToImage(text: emojiString))
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fit)
+                                    .frame(width: 32, height: 32)
+                                
+                                #elseif os(macOS)
+                                Image(nsImage: convertEmojiToImage(text: emojiString))
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fit)
+                                    .frame(width: 32, height: 32)
 
-                                    #if os(iOS)
-                                    Image(uiImage: convertEmojiToImage(text: emojiString))
-                                        .resizable()
-                                        .aspectRatio(contentMode: .fit)
-                                        .frame(width: 32, height: 32)
-
-                                    #elseif os(macOS)
-                                    Image(nsImage: convertEmojiToImage(text: emojiString))
-                                        .resizable()
-                                        .aspectRatio(contentMode: .fit)
-                                        .frame(width: 32, height: 32)
-
-                                    #endif
+                                #endif
                             }
                         }
                     }
@@ -190,66 +190,74 @@ struct EmojiPicker: View {
             .padding(4)
             .background(background)
             .zIndex(1)
-
-            List {
-                ForEach(Array(emojis), id: \.0) { group in
-                    Section(group.0.name) {
-                        HFlow {
-                            ForEach(group.1) { emoji in
-                                HStack {
-                                    if let id = emoji.emojiId {
-                                        LazyImage(source: .emoji(id), height: 32, width: 32, clipTo: Rectangle())
-                                    } else {
-                                        //                                        let base = emoji.base.map { String(format: "%02x", $0) }.joined(separator: "")
-                                        //                                        let url = "https://raw.githubusercontent.com/jdecked/twemoji/master/assets/72x72/\(base).png"
-                                        //
-                                        //                                        LazyImage(source: .url(URL(string: url)!), height: 24, width: 24, clipTo: Rectangle())
+            ScrollViewReader { proxy in
+                List {
+                    ForEach(Array(emojis), id: \.0) { group in
+                        Section {
+                            Text(group.0.name).id(group.0.id).bold()
+                            HFlow {
+                                ForEach(group.1) { emoji in
+                                    HStack {
+                                        if let id = emoji.emojiId {
+                                            LazyImage(source: .emoji(id), height: 32, width: 32, clipTo: Rectangle()).overlay(Color.clear.contentShape(Rectangle()))
+                                        } else {
+                                            //                                        let base = emoji.base.map { String(format: "%02x", $0) }.joined(separator: "")
+                                            //                                        let url = "https://raw.githubusercontent.com/jdecked/twemoji/master/assets/72x72/\(base).png"
+                                            //
+                                            //                                        LazyImage(source: .url(URL(string: url)!), height: 24, width: 24, clipTo: Rectangle())
                                         
-                                        let emojiString = String(String.UnicodeScalarView(emoji.base.compactMap(Unicode.Scalar.init)))
-                                        let image = convertEmojiToImage(text: emojiString)
+                                            let emojiString = String(String.UnicodeScalarView(emoji.base.compactMap(Unicode.Scalar.init)))
+                                            let image = convertEmojiToImage(text: emojiString)
                                         
-#if os(iOS)
-                                        Image(uiImage: image)
-                                            .resizable()
-                                            .aspectRatio(contentMode: .fit)
-                                            .frame(width: 32, height: 32)
+                                            #if os(iOS)
+                                            Image(uiImage: image)
+                                                .resizable()
+                                                .aspectRatio(contentMode: .fit)
+                                                .frame(width: 32, height: 32)
                                         
-#elseif os(macOS)
-                                        Image(nsImage: image)
-                                            .resizable()
-                                            .aspectRatio(contentMode: .fit)
-                                            .frame(width: 32, height: 32)
-#endif
+                                            #elseif os(macOS)
+                                            Image(nsImage: image)
+                                                .resizable()
+                                                .aspectRatio(contentMode: .fit)
+                                                .frame(width: 32, height: 32)
+                                            #endif
+                                        }
                                     }
-                                        
-                                }
-                                .onTapGesture {
-                                    onClick(emoji)
+                                    .onTapGesture {
+                                        onClick(emoji)
+                                    }
                                 }
                             }
                         }
+                        .id(group.0.id)
+                        .listRowInsets(EdgeInsets(top:0, leading: 4, bottom: 4, trailing: 4))
+                        .listRowBackground(background)
+                        .listRowSeparator(.hidden)
                     }
-                    .id(group.0.id)
-                    .listRowInsets(EdgeInsets(top: 4, leading: 4, bottom: 4, trailing: 4))
-                    .listRowBackground(background)
-                    .listRowSeparator(.hidden)
                 }
+                #if os(iOS)
+                .listStyle(.grouped)
+                #endif
+                .scrollPosition(id: $scrollPosition)
+                .padding(.top, 30)
+                .scrollContentBackground(.hidden)
+                .background(background)
+                .onChange(of: scrollPosition) { _, newPosition in
+                    guard let newPosition else { return }
+                    print("Scrolling to \(newPosition)")
+                    withAnimation {
+                        proxy.scrollTo(newPosition, anchor: .top,)
+                    }
+                }
+                .listSectionSpacing(0)
             }
-            #if os(iOS)
-            .listStyle(.grouped)
-            #endif
-            .scrollPosition(id: $scrollPosition)
-            .padding(.top, 30)
-            .scrollContentBackground(.hidden)
-            .background(background)
-
         }
     }
 }
 
 #Preview {
     @FocusState var focused: Bool
-    @State var showingSelectEmoji: Bool = false
+    @State var showingSelectEmoji: Bool = true
     let viewState = ViewState.preview()
 
     let box = MessageBox(channel: viewState.channels["0"]!, server: viewState.servers["0"], channelReplies: .constant([]), focusState: $focused, showingSelectEmoji: $showingSelectEmoji, editing: .constant(nil))
